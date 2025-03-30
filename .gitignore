@@ -1,52 +1,59 @@
-# Prerequisites
-*.d
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+#include <time.h>
 
-# Object files
-*.o
-*.ko
-*.obj
-*.elf
+// Function to sleep for a specified number of milliseconds
+void sleep_ms(int milliseconds) {
+    struct timespec ts;
+    ts.tv_sec = milliseconds / 1000;
+    ts.tv_nsec = (milliseconds % 1000) * 1000000;
+    nanosleep(&ts, NULL);
+}
 
-# Linker output
-*.ilk
-*.map
-*.exp
+int main() {
+    float A = 0, B = 0;  // Rotation angles
+    int k;
+    float z[1760];       // Depth buffer
+    char b[1760];        // ASCII frame buffer
 
-# Precompiled Headers
-*.gch
-*.pch
+    printf("\x1b[2H");  // Clear the screen
 
-# Libraries
-*.lib
-*.a
-*.la
-*.lo
+    for (;;) {
+        memset(b, 32, 1760);  // Fill buffer with spaces
+        memset(z, 0, 7040);   // Reset depth buffer
 
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
+        for (float j = 0; j < 6.28; j += 0.07) {  // Rotation over vertical axis
+            for (float i = 0; i < 6.28; i += 0.02) {  // Rotation over horizontal axis
+                float c = cos(i), s = sin(i);
+                float d = cos(j), e = sin(A), f = sin(j), g = cos(A);
+                float h = d + 2;
+                float D = 1 / (s * h * e + f * g + 5);
+                float l = cos(i), m = cos(B), n = sin(B);
+                float t = s * h * g - f * e;
 
-# Executables
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
+                int x = 40 + 30 * D * (l * h * m - t * n);
+                int y = 12 + 15 * D * (l * h * n + t * m);
+                int o = x + 80 * y;
 
-# Debug files
-*.dSYM/
-*.su
-*.idb
-*.pdb
+                int N = 8 * ((f * e - s * d * g) * m - s * d * e - f * g);
+                if (22 > y && y > 0 && x > 0 && 80 > x && D > z[o]) {
+                    z[o] = D;
+                    b[o] = ".,-~:!*#$@"[N > 0 ? N : 0];
+                }
+            }
+        }
 
-# Kernel Module Compile Results
-*.mod*
-*.cmd
-.tmp_versions/
-modules.order
-Module.symvers
-Mkfile.old
-dkms.conf
+        printf("\x1b[H");  // Move cursor to the top-left
+        for (k = 0; k < 1760; k++) {
+            putchar(k % 80 ? b[k] : 10);  // Print character buffer
+        }
+
+        A += 0.04;
+        B += 0.02;
+
+        sleep_ms(30);  // Sleep for 30 milliseconds
+    }
+
+    return 0;
+}
